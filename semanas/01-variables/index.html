@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semana 1 · Variables — Minijuegos de lógica</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --ink: #1f2430; --muted: #5d6475;
+    --accent: #2f6fdf; --accent-ink: #ffffff; --ok: #1d8a4e; --ok-bg: #e5f5ec;
+    --bad: #b4441f; --bad-bg: #fbece6; --hint-bg: #fff6d9; --hint-ink: #6b5200;
+    --code-bg: #1f2430; --code-ink: #e8eaf0; --line: #e2dfd6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171c; --card: #1e2128; --ink: #eceef3; --muted: #a3a9b8;
+      --accent: #6c9cff; --accent-ink: #0f1115; --ok: #5cd08e; --ok-bg: #16301f;
+      --bad: #ff9873; --bad-bg: #3a1f16; --hint-bg: #352c10; --hint-ink: #f3d77a;
+      --code-bg: #0f1115; --code-ink: #e8eaf0; --line: #2e323b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px 48px; }
+  a { color: var(--accent); }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 8px 0 16px; }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  h1 { margin: 2px 0 0; font-size: 28px; line-height: 1.2; }
+  .score { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; text-align: right; min-width: 150px; }
+  .score b { font-size: 22px; }
+  .score small { display: block; color: var(--muted); font-size: 13px; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  .intro p { margin: 0; }
+  h2 { font-size: 20px; margin: 0 0 6px; }
+  .task { color: var(--muted); margin: 0 0 14px; }
+  pre.code { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 14px 14px 0; margin: 0 0 14px;
+    overflow-x: auto; font: 15px/1.6 ui-monospace, "SF Mono", Consolas, monospace; counter-reset: ln; }
+  pre.code span.l { display: block; padding-left: 14px; }
+  pre.code span.l::before { counter-increment: ln; content: counter(ln); display: inline-block; width: 2ch; margin-right: 12px; color: #7d8496; text-align: right; }
+  .blank { background: #3b4254; border-bottom: 2px dashed #9fb5ff; padding: 0 6px; border-radius: 4px; }
+  label { font-weight: 600; display: block; margin-bottom: 6px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  input[type=text] { flex: 1 1 180px; font: inherit; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); }
+  input[type=text]:focus { outline: none; border-color: var(--accent); }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+  .primary { background: var(--accent); color: var(--accent-ink); }
+  .ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  .feedback { margin-top: 14px; border-radius: 10px; padding: 12px 14px; display: none; }
+  .feedback.ok { display: block; background: var(--ok-bg); color: var(--ok); }
+  .feedback.bad { display: block; background: var(--bad-bg); color: var(--bad); }
+  .hints { margin-top: 10px; }
+  .hint { background: var(--hint-bg); color: var(--hint-ink); border-radius: 10px; padding: 10px 14px; margin-top: 8px; font-size: 15px; }
+  .target { background: var(--bg); border: 1px dashed var(--muted); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-family: ui-monospace, Consolas, monospace; }
+  ul.blocks { list-style: none; padding: 0; margin: 0 0 14px; }
+  ul.blocks li { display: flex; align-items: center; gap: 8px; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 6px 6px 6px 14px; margin-bottom: 8px;
+    font: 15px/1.5 ui-monospace, Consolas, monospace; }
+  ul.blocks li code { flex: 1; overflow-x: auto; white-space: pre; }
+  ul.blocks li button { background: #3b4254; color: #fff; padding: 6px 12px; min-width: 40px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .done h2 { font-size: 24px; }
+  footer { color: var(--muted); font-size: 14px; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Semana 1 · Minijuegos de lógica</p>
+      <h1>Variables: cajas con nombre</h1>
+    </div>
+    <div class="score" aria-live="polite">
+      <b id="points">0</b> puntos
+      <small>Reto <span id="current">1</span> de <span id="total">6</span></small>
+    </div>
+  </header>
+  <div class="bar" aria-hidden="true"><div id="progress"></div></div>
+
+  <section class="card intro">
+    <p>Una <strong>variable</strong> es como una caja con una etiqueta: le pones un nombre y guardas un valor dentro, por ejemplo <code>let edad = 12;</code>. Puedes cambiar lo que hay dentro cuando quieras (<code>edad = 13;</code>) y, cuando usas el nombre, el ordenador mira qué hay en la caja <em>en ese momento</em>. En estos retos, <code>mostrar(...)</code> enseña en pantalla lo que le pases.</p>
+  </section>
+
+  <main id="game"></main>
+
+  <footer><a href="../../">← Todos los minijuegos</a></footer>
+</div>
+
+<script>
+"use strict";
+
+// ---------- Motor: ejecuta código de verdad para saber qué imprime ----------
+function ejecutar(codigo) {
+  const salida = [];
+  try {
+    const fn = new Function("mostrar", codigo);
+    fn(v => salida.push(String(v)));
+    return { ok: true, salida: salida.join("\n") };
+  } catch (e) {
+    return { ok: false, error: e, salida: salida.join("\n") };
+  }
+}
+function normalizar(t) {
+  return String(t).trim().replace(/^["'«“]+|["'»”]+$/g, "").replace(/\s+/g, " ").toLowerCase();
+}
+function esc(t) {
+  return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function codigoHTML(lineas, marcarHueco) {
+  return '<pre class="code">' + lineas.map(l => {
+    let h = esc(l);
+    if (marcarHueco) h = h.replace("___", '<span class="blank">___</span>');
+    return '<span class="l">' + h + '</span>';
+  }).join("") + '</pre>';
+}
+
+// ---------- Retos ----------
+const RETOS = [
+  {
+    tipo: "predecir",
+    titulo: "¿Qué número sale?",
+    enunciado: "Lee el código de arriba abajo y escribe exactamente lo que mostraría.",
+    codigo: ["let edad = 12;", "edad = edad + 1;", "mostrar(edad);"],
+    pistas: [
+      "El ordenador lee las líneas en orden, de arriba abajo, una cada vez.",
+      "En la línea 2, el lado derecho se calcula primero con el valor que hay AHORA en la caja edad.",
+      "Después de calcular, el resultado se guarda en edad y sustituye al valor anterior."
+    ]
+  },
+  {
+    tipo: "predecir",
+    titulo: "Copiar no es enlazar",
+    enunciado: "Fíjate bien en qué variable se muestra al final.",
+    codigo: ["let a = 5;", "let b = a;", "a = 10;", "mostrar(b);"],
+    pistas: [
+      "Se muestra b, no a. Sigue solo lo que le pasa a la caja b.",
+      "En la línea 2, b recibe una COPIA del valor que tenía a en ese momento.",
+      "Cambiar a después (línea 3) no toca lo que ya hay guardado dentro de b."
+    ]
+  },
+  {
+    tipo: "completar",
+    titulo: "Rellena el hueco",
+    enunciado: "¿Qué número tiene que ir en el hueco para que el programa muestre 6?",
+    codigo: ["let galletas = ___;", "galletas = galletas - 4;", "mostrar(galletas);"],
+    objetivo: "6",
+    pistas: [
+      "Piensa hacia atrás: al final quedan 6 galletas.",
+      "La línea 2 quita 4 galletas. Antes de quitarlas, ¿había más o menos que al final?",
+      "Busca el número que, al restarle 4, da 6."
+    ]
+  },
+  {
+    tipo: "predecir",
+    titulo: "Variables con texto",
+    enunciado: "Las variables también guardan texto. El símbolo + une textos. ¿Qué se muestra?",
+    codigo: ['let nombre = "Ana";', 'let saludo = "Hola, " + nombre;', "mostrar(saludo);"],
+    pistas: [
+      "Cuando usas + con textos, se pegan uno detrás de otro.",
+      "Sustituye nombre por lo que guarda su caja dentro de la línea 2.",
+      "Fíjate en la coma y el espacio que hay dentro de las comillas de la línea 2: también se copian."
+    ]
+  },
+  {
+    tipo: "ordenar",
+    titulo: "Construye el programa",
+    enunciado: "Ordena las líneas con las flechas para que el programa muestre 10. Luego pulsa «Ejecutar».",
+    bloques: ["mostrar(puntos);", "puntos = puntos * 2;", "let puntos = 0;", "puntos = puntos + 5;"],
+    objetivo: "10",
+    pistas: [
+      "Una variable tiene que crearse (con let) antes de poder usarla.",
+      "mostrar enseña el valor en el momento en que se ejecuta. ¿Dónde debería ir?",
+      "Empiezas en 0. Prueba en papel qué pasa si primero sumas y luego multiplicas, y al revés."
+    ]
+  },
+  {
+    tipo: "predecir",
+    titulo: "El intercambio",
+    enunciado: "Este truco intercambia dos variables. Escribe lo que se muestra (con el texto « y » incluido).",
+    codigo: ["let x = 3;", "let y = 7;", "let temp = x;", "x = y;", "y = temp;", 'mostrar(x + " y " + y);'],
+    pistas: [
+      "Haz una tabla en papel con tres columnas: x, y, temp. Ve apuntando cómo cambian línea a línea.",
+      "temp sirve para no perder el valor original de x antes de sobrescribirlo.",
+      "Al final se muestra primero el valor de x, luego el texto \" y \", luego el valor de y."
+    ]
+  }
+];
+
+// Calcula las respuestas correctas ejecutando el código real (nada escrito a mano).
+RETOS.forEach(r => {
+  if (r.tipo === "predecir") r.esperado = ejecutar(r.codigo.join("\n")).salida;
+});
+
+// ---------- Estado ----------
+const estado = { indice: 0, puntos: 0, completados: 0, fallos: 0, pistas: 0, orden: [] };
+const $ = s => document.querySelector(s);
+const game = $("#game");
+$("#total").textContent = RETOS.length;
+
+function actualizarMarcador() {
+  $("#points").textContent = estado.puntos;
+  $("#current").textContent = Math.min(estado.indice + 1, RETOS.length);
+  $("#progress").style.width = (estado.completados / RETOS.length * 100) + "%";
+}
+
+function puntosDelReto() {
+  return Math.max(4, 10 - 2 * estado.pistas);
+}
+
+function mostrarReto() {
+  const r = RETOS[estado.indice];
+  estado.fallos = 0; estado.pistas = 0;
+  let cuerpo = "";
+  if (r.tipo === "predecir") {
+    cuerpo = codigoHTML(r.codigo) +
+      '<label for="resp">¿Qué muestra el programa?</label>' +
+      '<div class="row"><input id="resp" type="text" autocomplete="off" spellcheck="false" placeholder="Escribe tu respuesta">' +
+      '<button class="primary" id="check">Comprobar</button></div>';
+  } else if (r.tipo === "completar") {
+    cuerpo = codigoHTML(r.codigo, true) +
+      '<div class="target">Debe mostrar: ' + esc(r.objetivo) + '</div>' +
+      '<label for="resp">¿Qué va en el hueco?</label>' +
+      '<div class="row"><input id="resp" type="text" inputmode="numeric" autocomplete="off" placeholder="Un número">' +
+      '<button class="primary" id="check">Ejecutar</button></div>';
+  } else if (r.tipo === "ordenar") {
+    estado.orden = r.bloques.slice();
+    cuerpo = '<div class="target">Debe mostrar: ' + esc(r.objetivo) + '</div>' +
+      '<ul class="blocks" id="blocks"></ul>' +
+      '<button class="primary" id="check">Ejecutar</button>';
+  }
+  game.innerHTML =
+    '<section class="card">' +
+      '<h2>' + esc(r.titulo) + '</h2>' +
+      '<p class="task">' + esc(r.enunciado) + '</p>' +
+      cuerpo +
+      '<div class="feedback" id="fb" role="status"></div>' +
+      '<div class="hints" id="hints"></div>' +
+      '<div class="actions"><button class="ghost" id="hintBtn">Pedir pista</button></div>' +
+    '</section>';
+  if (r.tipo === "ordenar") pintarBloques();
+  $("#check").addEventListener("click", comprobar);
+  $("#hintBtn").addEventListener("click", () => darPista(false));
+  const input = $("#resp");
+  if (input) {
+    input.addEventListener("keydown", e => { if (e.key === "Enter") comprobar(); });
+    input.focus();
+  }
+  actualizarMarcador();
+}
+
+function pintarBloques() {
+  const ul = $("#blocks");
+  ul.innerHTML = estado.orden.map((b, i) =>
+    '<li><code>' + esc(b) + '</code>' +
+    '<button data-i="' + i + '" data-d="-1" aria-label="Subir línea" ' + (i === 0 ? "disabled" : "") + '>↑</button>' +
+    '<button data-i="' + i + '" data-d="1" aria-label="Bajar línea" ' + (i === estado.orden.length - 1 ? "disabled" : "") + '>↓</button></li>'
+  ).join("");
+  ul.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
+    const i = +btn.dataset.i, j = i + (+btn.dataset.d);
+    [estado.orden[i], estado.orden[j]] = [estado.orden[j], estado.orden[i]];
+    pintarBloques();
+  }));
+}
+
+function darPista(automatica) {
+  const r = RETOS[estado.indice];
+  if (estado.pistas >= r.pistas.length) {
+    if (!automatica) mensaje("bad", "Ya tienes todas las pistas. Coge papel y sigue el código línea a línea: ¡estás cerca!");
+    return;
+  }
+  const div = document.createElement("div");
+  div.className = "hint";
+  div.textContent = "Pista " + (estado.pistas + 1) + ": " + r.pistas[estado.pistas];
+  $("#hints").appendChild(div);
+  estado.pistas++;
+  if (estado.pistas >= r.pistas.length) $("#hintBtn").disabled = true;
+}
+
+function mensaje(clase, texto) {
+  const fb = $("#fb");
+  fb.className = "feedback " + clase;
+  fb.textContent = texto;
+}
+
+function comprobar() {
+  const r = RETOS[estado.indice];
+  let correcto = false, explicacionFallo = "";
+
+  if (r.tipo === "predecir") {
+    const valor = $("#resp").value;
+    if (!valor.trim()) { mensaje("bad", "Escribe primero tu respuesta."); return; }
+    correcto = normalizar(valor) === normalizar(r.esperado);
+    explicacionFallo = "No es eso todavía.";
+  } else if (r.tipo === "completar") {
+    const valor = $("#resp").value.trim();
+    if (!/^-?\d+(\.\d+)?$/.test(valor)) { mensaje("bad", "En el hueco tiene que ir un número, por ejemplo 7."); return; }
+    const res = ejecutar(r.codigo.join("\n").replace("___", valor));
+    correcto = res.ok && res.salida === r.objetivo;
+    explicacionFallo = "Con " + valor + " el programa muestra " + res.salida + ", no " + r.objetivo + ".";
+  } else if (r.tipo === "ordenar") {
+    const res = ejecutar(estado.orden.join("\n"));
+    if (!res.ok) {
+      explicacionFallo = "El programa da error: estás usando la variable puntos antes de crearla.";
+    } else if (res.salida === "") {
+      explicacionFallo = "El programa no muestra nada.";
+    } else {
+      correcto = res.salida === r.objetivo;
+      explicacionFallo = "Tu programa muestra " + res.salida + ", no " + r.objetivo + ".";
+    }
+  }
+
+  if (correcto) {
+    const ganados = puntosDelReto();
+    estado.puntos += ganados;
+    estado.completados++;
+    mensaje("ok", "¡Correcto! +" + ganados + " puntos. " + (estado.indice + 1 < RETOS.length ? "Vamos con el siguiente." : ""));
+    $("#check").disabled = true;
+    $("#hintBtn").disabled = true;
+    const sig = document.createElement("button");
+    sig.className = "primary"; sig.id = "next";
+    sig.textContent = estado.indice + 1 < RETOS.length ? "Siguiente reto →" : "Ver resultado";
+    sig.addEventListener("click", siguiente);
+    document.querySelector(".actions").appendChild(sig);
+    sig.focus();
+    actualizarMarcador();
+  } else {
+    estado.fallos++;
+    mensaje("bad", explicacionFallo + " Inténtalo otra vez: te dejo una pista.");
+    darPista(true);
+  }
+}
+
+function siguiente() {
+  estado.indice++;
+  if (estado.indice < RETOS.length) { mostrarReto(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+  actualizarMarcador();
+  const max = RETOS.length * 10;
+  game.innerHTML =
+    '<section class="card done">' +
+      '<h2>¡Semana 1 completada! 🎉</h2>' +
+      '<p>Has conseguido <strong>' + estado.puntos + ' de ' + max + '</strong> puntos posibles.</p>' +
+      '<p>Ya sabes crear variables, cambiar su valor y seguir cómo cambian línea a línea. Esa es la base de todo lo que viene: la próxima semana, las <strong>condicionales</strong> (decidir qué hacer según el valor de una variable).</p>' +
+      '<div class="actions"><button class="primary" id="again">Jugar otra vez</button></div>' +
+    '</section>';
+  $("#again").addEventListener("click", () => {
+    Object.assign(estado, { indice: 0, puntos: 0, completados: 0 });
+    mostrarReto();
+  });
+}
+
+mostrarReto();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "descripcion": "Registro de conceptos cubiertos. El agente semanal lo lee para no repetir y lo actualiza al publicar.",
+  "plan": [
+    "variables",
+    "condicionales",
+    "bucles",
+    "funciones",
+    "arrays/listas",
+    "recursion",
+    "algoritmos basicos: ordenar",
+    "algoritmos basicos: buscar"
+  ],
+  "publicados": [
+    {
+      "semana": 1,
+      "concepto": "variables",
+      "carpeta": "semanas/01-variables/",
+      "titulo": "Variables: cajas con nombre",
+      "fecha": "2026-11-12",
+      "subtemas": ["crear y reasignar", "copia de valores", "razonar hacia atras", "concatenar texto", "orden de las instrucciones", "intercambio con variable temporal"]
+    }
+  ]
+}
